@@ -6,7 +6,7 @@
     <title>ZEON BET - Canlı Bahis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root { --blue:#1e3799; --lblue:#0c2461; --green:#4cd137; --gold:#fbc531; }
+        :root{--blue:#1e3799;--lblue:#0c2461;--green:#4cd137;--gold:#fbc531;}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{background:linear-gradient(135deg,var(--lblue),var(--blue));color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;}
         header{position:fixed;top:0;width:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:999;padding:15px 0;}
@@ -34,6 +34,22 @@
         .btn-coupon:disabled{background:#666;cursor:not-allowed;}
         @media(max-width:768px){.coupon{width:95%;right:2.5%;}.match-card{flex-direction:column;text-align:center;}.odds{justify-content:center;}}
     </style>
+
+    <!-- GİRİŞ SONRASI PROFİLİ ANINDA YÜKLEMEK İÇİN EKSTRA KOD -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCYXL4EEbvokEDFpC6IvAwIaiegPcxYm5Q", authDomain: "zeonbet-45f71.firebaseapp.com", projectId: "zeonbet-45f71", storageBucket: "zeonbet-45f71.firebasestorage.app", messagingSenderId: "667804601852", appId: "1:667804601852:web:3d2efa987944f5debcb679" };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Sayfa açılır açılmaz oturum kontrolü + otomatik yenileme
+        auth.onAuthStateChanged(user => {
+            if (user && !document.body.innerHTML.includes("₺")) {
+                setTimeout(() => location.reload(), 800);
+            }
+        });
+    </script>
 </head>
 <body>
 
@@ -64,15 +80,9 @@
     <button style="width:100%;padding:10px;background:#e74c3c;border:none;border-radius:8px;margin-top:8px;cursor:pointer;" onclick="kuponTemizle()">Kupanu Sil</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyCYXL4EEbvokEDFpC6IvAwIaiegPcxYm5Q", authDomain: "zeonbet-45f71.firebaseapp.com", projectId: "zeonbet-45f71", storageBucket: "zeonbet-45f71.firebasestorage.app", messagingSenderId: "667804601852", appId: "1:667804601852:web:3d2efa987944f5debcb679" };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
-
     let selections = [];
     let currentUser = null;
 
@@ -81,11 +91,11 @@
             currentUser = user;
             db.collection("users").doc(user.uid).onSnapshot(doc => {
                 if (doc.exists) {
-                    const data = doc.data();
+                    const d = doc.data();
                     document.getElementById("userArea").innerHTML = `
-                        <div>${data.displayName || user.email.split('@')[0]}</div>
-                        <div class="balance"><i class="fas fa-coins"></i> ₺${data.balance || 0} 
-                            <i class="fas fa-plus-circle" style="margin-left:10px;cursor:pointer;" onclick="alert('Para yatırma yakında aktif')"></i>
+                        <div>${d.displayName || user.email.split('@')[0]}</div>
+                        <div class="balance"><i class="fas fa-coins"></i> ₺${d.balance || 0} 
+                            <i class="fas fa-plus-circle" style="margin-left:10px;cursor:pointer;" onclick="alert('Para yatırma yakında')"></i>
                         </div>
                         <button class="profile-btn" onclick="firebase.auth().signOut().then(()=>location.reload())">ÇIKIŞ</button>
                     `;
@@ -158,4 +168,4 @@
     document.getElementById("amount").addEventListener("input",update);
 </script>
 </body>
-  </html>
+        </html>
