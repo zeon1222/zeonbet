@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEON BET - Canlı Bahis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --blue:#1e3799; --lblue:#0c2461; --green:#4cd137; --gold:#fbc531; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:linear-gradient(135deg,var(--lblue),var(--blue));color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;}
+        header{position:fixed;top:0;width:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:999;padding:15px 0;}
+        .c{max-width:1300px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;align-items:center;}
+        .logo{font-size:34px;font-weight:900;color:var(--gold);}
+        .logo i{color:var(--green);}
+        .user-area{display:flex;align-items:center;gap:20px;font-size:18px;}
+        .balance{background:var(--gold);color:#000;padding:10px 25px;border-radius:30px;font-weight:bold;font-size:20px;}
+        .balance i{margin-right:8px;}
+        .profile-btn{background:var(--green);padding:12px 25px;border-radius:30px;cursor:pointer;}
+        .hero{padding:120px 20px 60px;text-align:center;}
+        .hero h1{font-size:56px;background:linear-gradient(90deg,var(--green),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .btn-big{background:var(--green);padding:18px 50px;font-size:24px;border-radius:12px;margin-top:30px;display:inline-block;cursor:pointer;}
+        .match-card{background:rgba(255,255,255,0.1);margin:15px auto;padding:20px;border-radius:12px;max-width:900px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+        .odds{display:flex;gap:15px;flex-wrap:wrap;}
+        .odd-btn{background:rgba(255,255,255,0.2);padding:12px 20px;border-radius:8px;min-width:80px;text-align:center;cursor:pointer;transition:0.3s;}
+        .odd-btn.selected{background:var(--green);color:#000;font-weight:bold;}
+        .odd-btn.disabled{opacity:0.5;cursor:not-allowed;}
+        .live{color:#e74c3c;font-weight:bold;animation:blink 1s infinite;}
+        @keyframes blink{50%{opacity:0.6;}}
+        .coupon{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.9);width:380px;border-radius:16px;padding:20px;box-shadow:0 0 30px rgba(76,209,55,0.5);z-index:998;display:none;}
+        .total-odds{font-size:24px;text-align:center;margin:15px 0;color:var(--gold);}
+        input[type=number]{width:100%;padding:15px;background:rgba(255,255,255,0.2);border:none;border-radius:8px;color:white;font-size:18px;text-align:center;}
+        .btn-coupon{width:100%;padding:15px;background:var(--green);border:none;border-radius:8px;color:#000;font-size:20px;font-weight:bold;margin-top:10px;cursor:pointer;}
+        .btn-coupon:disabled{background:#666;cursor:not-allowed;}
+        @media(max-width:768px){.coupon{width:95%;right:2.5%;}.match-card{flex-direction:column;text-align:center;}.odds{justify-content:center;}}
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="c">
+        <div class="logo"><i class="fas fa-futbol"></i> ZEON BET</div>
+        <div class="user-area" id="userArea">
+            <button class="profile-btn" onclick="location.href='giris.html'">GİRİŞ / KAYIT</button>
+        </div>
+    </div>
+</header>
+
+<div class="hero">
+    <h1>ZEON BET</h1>
+    <p style="font-size:20px;margin:20px 0;">Canlı Futbol Bahisleri • En Yüksek Oranlar • Anında Kazanç</p>
+    <div class="btn-big" onclick="location.href='giris.html'">HEMEN OYNA → 500₺ BONUS</div>
+</div>
+
+<div id="matchList" style="padding:0 20px;"></div>
+
+<div class="coupon" id="coupon">
+    <h3><i class="fas fa-ticket-alt"></i> KOMBİNE KUPON</h3>
+    <div class="selection" id="selections"></div>
+    <div class="total-odds">Toplam Oran: <span id="totalOdds">1.00</span></div>
+    <input type="number" id="amount" placeholder="Miktar (₺)" min="1">
+    <p style="text-align:center;margin:10px 0;font-size:18px;">Olası Kazanç: <strong id="possibleWin">0 ₺</strong></p>
+    <button class="btn-coupon" id="playBtn" onclick="kuponOyna()" disabled>KUPONU OYNA</button>
+    <button style="width:100%;padding:10px;background:#e74c3c;border:none;border-radius:8px;margin-top:8px;cursor:pointer;" onclick="kuponTemizle()">Kupanu Sil</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCYXL4EEbvokEDFpC6IvAwIaiegPcxYm5Q", authDomain: "zeonbet-45f71.firebaseapp.com", projectId: "zeonbet-45f71", storageBucket: "zeonbet-45f71.firebasestorage.app", messagingSenderId: "667804601852", appId: "1:667804601852:web:3d2efa987944f5debcb679" };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let selections = [];
+    let currentUser = null;
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            db.collection("users").doc(user.uid).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById("userArea").innerHTML = `
+                        <div>${data.displayName || user.email.split('@')[0]}</div>
+                        <div class="balance"><i class="fas fa-coins"></i> ₺${data.balance || 0} 
+                            <i class="fas fa-plus-circle" style="margin-left:10px;cursor:pointer;" onclick="alert('Para yatırma yakında aktif')"></i>
+                        </div>
+                        <button class="profile-btn" onclick="firebase.auth().signOut().then(()=>location.reload())">ÇIKIŞ</button>
+                    `;
+                }
+            });
+        }
+    });
+
+    db.collection("matches").orderBy("timestamp","desc").onSnapshot(snap => {
+        const list = document.getElementById("matchList");
+        list.innerHTML = "";
+        snap.forEach(doc => {
+            const m = doc.data();
+            const dakika = m.live ? Math.floor((Date.now() - m.timestamp.toDate())/60000)+1 : "";
+            const durum = m.result !== undefined ? (m.result===1?"1":m.result===0?"X":"2") : "";
+            const div = document.createElement("div");
+            div.className = "match-card";
+            div.innerHTML = `
+                <div>\( {m.live?`<span class="live">CANLI \){dakika}'</span><br>`:''}
+                <strong>\( {m.homeTeam}</strong> vs <strong> \){m.awayTeam}</strong>
+                \( {durum?`<br><span style="color:#fbc531;font-size:18px;">SONUÇ: \){durum}</span>`:''}
+                </div>
+                <div class="odds">
+                    <div class="odd-btn \( {durum?'disabled':''}" onclick=" \){durum?'':`add('\( {doc.id}',' \){m.homeTeam} kazanır',\( {m.odd1})`}"> \){m.odd1}</div>
+                    <div class="odd-btn \( {durum?'disabled':''}" onclick=" \){durum?'':`add('\( {doc.id}','Berabere', \){m.oddX})`}">${m.oddX}</div>
+                    <div class="odd-btn \( {durum?'disabled':''}" onclick=" \){durum?'':`add('\( {doc.id}',' \){m.awayTeam} kazanır',\( {m.odd2})`}"> \){m.odd2}</div>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    });
+
+    function add(id, sel, odd) {
+        if (selections.find(x=>x.matchId===id)) return alert("Bu maç zaten kuponda!");
+        selections.push({matchId:id, selection:sel, odd:odd});
+        update();
+    }
+    function remove(id) { selections = selections.filter(x=>x.matchId!==id); update(); }
+    function update() {
+        const total = selections.reduce((a,b)=>a*b.odd,1).toFixed(2);
+        document.getElementById("totalOdds").textContent = total;
+        document.getElementById("selections").innerHTML = selections.map(s=>`<div class="sel">\( {s.selection} <strong>@ \){s.odd}</strong> <i class="fas fa-times" style="cursor:pointer;" onclick="remove('${s.matchId}')"></i></div>`).join("");
+        document.getElementById("coupon").style.display = selections.length>0?"block":"none";
+        const amt = parseFloat(document.getElementById("amount").value)||0;
+        document.getElementById("possibleWin").textContent = (amt*total).toFixed(2)+" ₺";
+        document.getElementById("playBtn").disabled = amt<=0 || selections.length===0;
+    }
+    function kuponTemizle() { selections=[]; document.getElementById("amount").value=""; update(); }
+    async function kuponOyna() {
+        const amt = parseFloat(document.getElementById("amount").value);
+        if (!currentUser) return alert("Giriş yap!");
+        if (amt<=0) return alert("Miktar gir!");
+        const userSnap = await db.collection("users").doc(currentUser.uid).get();
+        if (amt > userSnap.data().balance) return alert("Yetersiz bakiye!");
+        const totalOdds = selections.reduce((a,b)=>a*b.odd,1);
+        db.collection("bets").add({
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            selections: selections,
+            amount: amt,
+            totalOdds: totalOdds,
+            possibleWin: amt*totalOdds,
+            status: "bekliyor",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            db.collection("users").doc(currentUser.uid).update({balance: firebase.firestore.FieldValue.increment(-amt)})
+                .then(() => { alert(`Kupon oynandı! -${amt} ₺`); kuponTemizle(); });
+        });
+    }
+    document.getElementById("amount").addEventListener("input",update);
+</script>
+</body>
+  </html>
