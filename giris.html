@@ -36,7 +36,7 @@
         <input type="password" id="rpass" placeholder="Şifre">
         <button class="btn" onclick="kayit()">KAYIT OL → 500₺ BONUS</button>
     </div>
-    <p id="status" style="margin-top:20px;text-align:center;font-weight:bold;"></p>
+    <p id="status" style="margin-top:20px;text-align:center;font-weight:bold;color:#fbc531;"></p>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -52,20 +52,34 @@
     function k(){document.querySelectorAll('.tab')[1].classList.add('active');document.querySelectorAll('.tab')[0].classList.remove('active');document.getElementById('kayit').style.display='block';document.getElementById('giris').style.display='none';}
 
     function giris(){
-        auth.signInWithEmailAndPassword(document.getElementById("email").value, document.getElementById("pass").value)
-            .then(()=>location.href="index.html")
-            .catch(()=>document.getElementById("status").textContent="Hatalı giriş!");
-    }
-    function kayit(){
-        const name=document.getElementById("name").value;
-        const email=document.getElementById("remail").value;
-        const pass=document.getElementById("rpass").value;
-        auth.createUserWithEmailAndPassword(email,pass)
-            .then(cred=>{
-                db.collection("users").doc(cred.user.uid).set({displayName:name,email:email,balance:500,joinDate:new Date().toISOString().split('T')[0]})
-                    .then(()=>location.href="index.html");
+        const email = document.getElementById("email").value;
+        const pass = document.getElementById("pass").value;
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                window.location.href = "index.html";
+                setTimeout(() => window.location.reload(), 600); // GARANTİ YÜKLEME
             })
-            .catch(()=>document.getElementById("status").textContent="Kayıt hatası!");
+            .catch(() => document.getElementById("status").textContent = "Hatalı giriş!");
+    }
+
+    function kayit(){
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("remail").value;
+        const pass = document.getElementById("rpass").value;
+        auth.createUserWithEmailAndPassword(email, pass)
+            .then(cred => {
+                return db.collection("users").doc(cred.user.uid).set({
+                    displayName: name,
+                    email: email,
+                    balance: 500,
+                    joinDate: new Date().toISOString().split('T')[0]
+                });
+            })
+            .then(() => {
+                window.location.href = "index.html";
+                setTimeout(() => window.location.reload(), 600);
+            })
+            .catch(err => document.getElementById("status").textContent = "Kayıt hatası!");
     }
 </script>
 </body>
