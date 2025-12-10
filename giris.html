@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEON BET - Giriş</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body{background:linear-gradient(135deg,#0c2461,#1e3799);color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .box{background:rgba(255,255,255,0.1);padding:40px;border-radius:16px;max-width:420px;width:100%;backdrop-filter:blur(12px);box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+        .logo{text-align:center;font-size:48px;color:#fbc531;margin-bottom:30px;}
+        .logo i{color:#4cd137;}
+        .tab{padding:15px;text-align:center;cursor:pointer;font-weight:bold;flex:1;}
+        .tab.active{border-bottom:4px solid #4cd137;color:#4cd137;}
+        .tabs{display:flex;margin-bottom:30px;border-bottom:2px solid rgba(255,255,255,0.2);}
+        input{width:100%;padding:15px;margin:12px 0;background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:white;font-size:16px;}
+        .btn{width:100%;padding:16px;background:#4cd137;border:none;border-radius:8px;color:white;font-size:18px;font-weight:bold;cursor:pointer;margin-top:20px;}
+        .btn:hover{background:#44bd32;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="logo"><i class="fas fa-futbol"></i> ZEON BET</div>
+    <div class="tabs">
+        <div class="tab active" onclick="g()">GİRİŞ YAP</div>
+        <div class="tab" onclick="k()">KAYIT OL</div>
+    </div>
+    <div id="giris">
+        <input type="email" id="email" placeholder="E-posta">
+        <input type="password" id="pass" placeholder="Şifre">
+        <button class="btn" onclick="giris()">GİRİŞ YAP</button>
+    </div>
+    <div id="kayit" style="display:none;">
+        <input type="text" id="name" placeholder="Kullanıcı adı">
+        <input type="email" id="remail" placeholder="E-posta">
+        <input type="password" id="rpass" placeholder="Şifre">
+        <button class="btn" onclick="kayit()">KAYIT OL → 500₺ BONUS</button>
+    </div>
+    <p id="status" style="margin-top:20px;text-align:center;font-weight:bold;"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCYXL4EEbvokEDFpC6IvAwIaiegPcxYm5Q", authDomain: "zeonbet-45f71.firebaseapp.com", projectId: "zeonbet-45f71", storageBucket: "zeonbet-45f71.firebasestorage.app", messagingSenderId: "667804601852", appId: "1:667804601852:web:3d2efa987944f5debcb679" };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function g(){document.querySelectorAll('.tab')[0].classList.add('active');document.querySelectorAll('.tab')[1].classList.remove('active');document.getElementById('giris').style.display='block';document.getElementById('kayit').style.display='none';}
+    function k(){document.querySelectorAll('.tab')[1].classList.add('active');document.querySelectorAll('.tab')[0].classList.remove('active');document.getElementById('kayit').style.display='block';document.getElementById('giris').style.display='none';}
+
+    function giris(){
+        auth.signInWithEmailAndPassword(document.getElementById("email").value, document.getElementById("pass").value)
+            .then(()=>location.href="index.html")
+            .catch(()=>document.getElementById("status").textContent="Hatalı giriş!");
+    }
+    function kayit(){
+        const name=document.getElementById("name").value;
+        const email=document.getElementById("remail").value;
+        const pass=document.getElementById("rpass").value;
+        auth.createUserWithEmailAndPassword(email,pass)
+            .then(cred=>{
+                db.collection("users").doc(cred.user.uid).set({displayName:name,email:email,balance:500,joinDate:new Date().toISOString().split('T')[0]})
+                    .then(()=>location.href="index.html");
+            })
+            .catch(()=>document.getElementById("status").textContent="Kayıt hatası!");
+    }
+</script>
+</body>
+</html>
